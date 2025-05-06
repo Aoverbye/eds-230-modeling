@@ -164,6 +164,7 @@ ggplot(sierraczosolar, aes(x = month, y = (Kdown_direct+Kdown_diffuse), fill=mon
 
 ```{r, eval=TRUE, echo=TRUE}
 # run the model
+# Solar = the data? the .rda
 solarpv(area = 0.1, solar = sierraczosolar, 
         clr = "green", eunit = "W", g=FALSE)
 

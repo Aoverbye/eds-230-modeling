@@ -1,0 +1,113 @@
+---
+title: "sobol_assignment"
+format: html
+editor: visual
+---
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Part 1: Key takeaways from the Uranium In Ground Water Model paper
+
+The sensitivity analysis shows uranium concentration and water intake are key factors affecting health risks from groundwater. Managers can now focus monitoring on these specific variables instead of tracking everything. With children facing higher drinking risks and adults more affected by skin contact, targeted protection strategies can be developed for different age groups. This focused approach makes better use of limited resources in contaminated areas and improves public health outcomes overall.
+
+# Part 2: Repeating the sensitivity analysis 
+
+```{r}
+library(sensitivity)
+library(tidyverse)
+library(gridExtra)
+library(purrr)
+library(ggpubr)
+library(here)
+
+# Load conductance model
+source(here("R", "Catm.R"))
+```
+
+```{r}
+# Define number of samples
+np <- 1000
+
+# Generate input values using specified distributions for each parameter
+k_o <- rnorm(np, mean = 0.1, sd = 0.1 * 0.01)
+k_d <- rnorm(np, mean = 0.7, sd = 0.7 * 0.01)
+v <- rnorm(np, mean = 300, sd = 50)
+height <- runif(np, min = 3.5, max = 5.5)
+
+# Combine into a single data frame for X1
+X1 <- cbind.data.frame(k_o, k_d, v, height)
+
+# Repeat process to create independent sample set X2
+k_o <- rnorm(np, mean = 0.1, sd = 0.1 * 0.01)
+k_d <- rnorm(np, mean = 0.7, sd = 0.7 * 0.01)
+v <- rnorm(np, mean = 300, sd = 50)
+height <- runif(np, min = 3.5, max = 5.5)
+
+X2 <- cbind.data.frame(k_o, k_d, v, height)
+
+# Set up Sobol sensitivity object
+sens_Catm_Sobol <- sobolSalt(model = NULL, X1, X2, nboot = 100)
+
+```
+
+```{r}
+# Extract full Sobol parameter set and run the model
+parms <- as.data.frame(sens_Catm_Sobol$X)
+colnames(parms) <- colnames(X1)
+
+# Use pmap to apply model across all parameter combinations
+res <- pmap_dbl(parms, Catm)
+
+# Return results to Sobol object for analysis
+sens_Catm_Sobol <- sensitivity::tell(sens_Catm_Sobol, res, res.names = "ga")
+
+```
+
+```{r}
+# Combine parameters and outputs into one data frame
+both <- cbind.data.frame(parms, gs = sens_Catm_Sobol$y)
+
+# Create histogram showing variation in conductance values
+plot1 <- ggplot(both, aes(x = gs)) +
+  geom_histogram() +
+  geom_vline(xintercept = mean(both$gs), col = "lightpink")
+
+print(plot1)
+
+```
+```{r}
+# Plot conductance vs. windspeed, colored by vegetation height
+plot2.1 <- ggplot(both, aes(v, gs, col = height)) +
+  geom_point() +
+  labs(y = "Conductance (mm/s)", x = "Windspeed")
+
+# Plot conductance vs. height, colored by windspeed
+plot2.2 <- ggplot(both, aes(height, gs, col = v)) +
+  geom_point() +
+  labs(y = "Conductance (mm/s)", x = "Vegetation Height")
+
+print(plot2.1)
+print(plot2.2)
+
+```
+
+
+```{r}
+# Assign readable row names for indices
+row.names(sens_Catm_Sobol$S) <- colnames(parms)
+row.names(sens_Catm_Sobol$T) <- colnames(parms)
+
+# Display first-order (main effect) Sobol indices
+sens_Catm_Sobol$S
+
+# Display total-order Sobol indices
+sens_Catm_Sobol$T
+
+# Print complete summary of Sobol object
+print(sens_Catm_Sobol)
+
+```
+
+Our results show that both wind and how tall the plants are affect conductance. This is different from what we saw in class, where these didn't matter as much. It looks like shorter plants might let more wind through, which increases the effect. Our model responds to both, but wind seems to have the biggest impact
