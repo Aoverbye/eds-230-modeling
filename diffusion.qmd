@@ -45,9 +45,26 @@ filled.contour(res$conc, xlab = "Time", ylab = "Distance")
 # we can also see how much material moved from place to place each time step
 filled.contour(res$qin, xlab = "Time", ylab = "Distance")
 
-
+# verbose = true
 # play with time step, space step and parameters
 ```
 
 # 1. Play with time step, space step and parameters
 # 2. Design different ways to summarize and visualize output 
+
+```{r}
+test <- max(res$conc)
+```
+
+
+```{r}
+class_function <- function(output){
+  test <- output %>% 
+    mean(unlist(quot))
+return(test)}
+```
+
+```{r}
+class_function(res)
+```
+

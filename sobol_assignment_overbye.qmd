@@ -1,5 +1,6 @@
 ---
 title: "sobol_assignment"
+author: "Amanda Overbye"
 format: html
 editor: visual
 ---
@@ -12,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 The sensitivity analysis shows uranium concentration and water intake are key factors affecting health risks from groundwater. Managers can now focus monitoring on these specific variables instead of tracking everything. With children facing higher drinking risks and adults more affected by skin contact, targeted protection strategies can be developed for different age groups. This focused approach makes better use of limited resources in contaminated areas and improves public health outcomes overall.
 
-# Part 2: Repeating the sensitivity analysis 
+# Part 2: Repeating the sensitivity analysis
 
 ```{r}
 library(sensitivity)
@@ -77,6 +78,7 @@ plot1 <- ggplot(both, aes(x = gs)) +
 print(plot1)
 
 ```
+
 ```{r}
 # Plot conductance vs. windspeed, colored by vegetation height
 plot2.1 <- ggplot(both, aes(v, gs, col = height)) +
@@ -92,7 +94,6 @@ print(plot2.1)
 print(plot2.2)
 
 ```
-
 
 ```{r}
 # Assign readable row names for indices
